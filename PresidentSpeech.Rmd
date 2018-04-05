@@ -1,0 +1,43 @@
+---
+title: "PresidentSpeech"
+author: "Steven Tran"
+date: "April 4, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(knitr)
+library(tidytext)
+library(tidyverse)
+library(stringr)
+source(JFK.R)
+
+purl("bush41 first state of the union.txt", output = "Bush.R")
+purl("JFK first state of the union.txt", output = "JFK.R")
+
+nrc <- get_sentiments("nrc")
+
+JFK <- data.frame(readLines("JFK.R"))
+BUS <- data.frame(readLines("Bush.R"))
+
+colnames(JFK) <- c("text")
+colnames(BUS) <- c("text")
+
+JFK <- JFK %>% mutate(President = "JFK")
+BUS <- BUS %>% mutate(President = "Bush")
+
+JFK[,1] <- as.character(JFK[,1])
+BUS[,1] <- as.character(BUS[,1])
+
+DATA <- JFK %>% 
+  rbind(BUS) %>% 
+  unnest_tokens(word, text) %>% 
+  inner_join(nrc) %>%
+  count(word, sort = TRUE)
+
+  
+```
