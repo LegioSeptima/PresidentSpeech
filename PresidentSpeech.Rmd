@@ -56,6 +56,8 @@ DATAB <- BUS %>% #BUSH COUNT
 #We should count differences in top 10 words
 top10jfk <- head(DATAJ,10)[1] #top 10 words for jfk
 top10bus <- head(DATAB,10)[1] #top 10 words for bush
+compare <- top10jfk %>% 
+  mutate(inTop10Bus = word %in% top10bus[[1]])
 #View(top10jfk)
 top10merged <- top10jfk %>% rbind(top10bus) %>% distinct
 #View(top10merged)
