@@ -18,6 +18,8 @@ library(stringr)
 library(foreach)
 options(dplyr.print_max = 1e9)
 ```
+
+
 ```{r}
 purl("bush41 first state of the union.txt", output = "Bush.R")
 purl("JFK first state of the union.txt", output = "JFK.R")
