@@ -110,24 +110,23 @@ View(top10jfksent)
 # Now let's calculate the percent occurence of each sentiment in top10 speech and overall.
 get_pct_occur <- function(df, sentiments){
   #get df of pct occurence for each sentiment in a column dataframe
-  n <- nrow(df)/100
-  occ <- sentiments.rbind(1:nrow(sentiments)) #2 columns
-  foreach(i=1:nrow(sentiments)) %do% occ[1][i] <- (df %>% select("sentiment") %>% filter(sentiment == sentiments[i]))/n
+  occ <- as.data.frame(sentiments)
+  n = nrow(df)
+  l <- length(sentiments)
+  occ$occurrences <- foreach(s= sentiments) %do% (nrow(df %>% select("sentiment") %>% filter(sentiment == s)) / n*100)
   return(occ)
 }
-#tmp1 <- top10bussent %>% select("sentiment") %>% filter(sentiment == "joy")
 
-pctocc_bush <- get_pct_occur(top10bussent)
-  
-View(pctocc_bush)
-
-
+pctocc_bush <- get_pct_occur(top10bussent, sentiments) # percent each sentiment occurs in top 10 most used words
+pctocc_jfk <- get_pct_occur(top10jfksent, sentiments) 
 
 #for overall let's get both the weighted overall sentiment, and the average for unique words
 bussent <- get_sentimentss(DATAB,sentiments)
 jfksent <- get_sentimentss(DATAJ, sentiments)
-
-
+pct_overall_bush <- get_pct_occur(bussent,sentiments)
+pct_overall_jfk <- get_pct_occur(jfksent,sentiments)
+View(pct_overall_jfk)
+View(pct_overall_bush)
 
 ```
-
+TODO Now let's analyze the difference between sentiment occurence in bush's and jfks speeches
