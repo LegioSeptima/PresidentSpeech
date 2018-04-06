@@ -15,15 +15,16 @@ library(knitr)
 library(tidytext)
 library(tidyverse)
 library(stringr)
+library(foreach)
 options(dplyr.print_max = 1e9)
 ```
 ```{r}
 purl("bush41 first state of the union.txt", output = "Bush.R")
 purl("JFK first state of the union.txt", output = "JFK.R")
-source("Bush.R")
-source("JFK.R")
+#source("Bush.R")
+#source("JFK.R")
 nrc <- get_sentiments("nrc")
-
+View(nrc)
 JFK <- data.frame(readLines("JFK.R"))
 BUS <- data.frame(readLines("Bush.R"))
 
@@ -60,7 +61,7 @@ colnames(joined) <- c("word","Total", "JFK", "Bush") #name columns
 nums <- tail(colnames(joined), -1)
 joined <- mutate_at(joined, .vars=vars(nums), .funs=funs(replace(.,is.na(.), 0)) ) #replace na with 0
 print(joined)
-#View(joined)
+View(joined)
 
 ```
 
@@ -86,6 +87,47 @@ numsame <- nrow(insct)
 print(paste("The number of words that did not change in the top 10 is ", numsame))
 print("The following words remained in the top 10 most-used for both speeches:") 
 print(insct$word)
+```
+We now perform sentiment analysis on these words.
+
+```{r}
+get_sentimentss <- function(df, sentiments, na.rm=T){
+  #given a list of sentiments, cross references words in the data frame with list, may remove NA rows
+  nrc <- filter(nrc, sentiment %in% sentiments)
+  ds <- df %>% left_join(nrc, by="word")
+  if(na.rm){
+    ds <- ds[complete.cases(ds), ]
+  }
+  return(ds)
+} 
+sentiments <- c("joy", "anger", "anticipation")
+top10bussent <- get_sentimentss(top10bus, sentiments)
+top10jfksent <- get_sentimentss(top10jfk, sentiments)
+View(top10jfksent)
+
+
+
+# Now let's calculate the percent occurence of each sentiment in top10 speech and overall.
+get_pct_occur <- function(df, sentiments){
+  #get df of pct occurence for each sentiment in a column dataframe
+  n <- nrow(df)/100
+  occ <- sentiments.rbind(1:nrow(sentiments)) #2 columns
+  foreach(i=1:nrow(sentiments)) %do% occ[1][i] <- (df %>% select("sentiment") %>% filter(sentiment == sentiments[i]))/n
+  return(occ)
+}
+#tmp1 <- top10bussent %>% select("sentiment") %>% filter(sentiment == "joy")
+
+pctocc_bush <- get_pct_occur(top10bussent)
+  
+View(pctocc_bush)
+
+
+
+#for overall let's get both the weighted overall sentiment, and the average for unique words
+bussent <- get_sentimentss(DATAB,sentiments)
+jfksent <- get_sentimentss(DATAJ, sentiments)
+
 
 
 ```
+
