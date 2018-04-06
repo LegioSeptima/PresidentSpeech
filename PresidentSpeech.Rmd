@@ -62,18 +62,23 @@ nums <- tail(colnames(joined), -1)
 joined <- mutate_at(joined, .vars=vars(nums), .funs=funs(replace(.,is.na(.), 0)) ) #replace na with 0
 print(joined)
 View(joined)
-
 ```
 
-TODO: DISCUSS RESULTS OF TABLE
+Joined is the table detailing the total use of each word in both the presidents' speeches. An example is "hope", used 75 times total. Bush used it 50 times and JFK used it 25 times. 
 
 ```{r}
 #now we must divide the JFK and BUS cols by the total row
 #percents <- joined %>% mutate_at(.vars=vars("JFK", "Bush"), . = . / Total)
 percents <- joined %>% mutate(JFK = JFK / Total * 100) %>% mutate(Bush = Bush / Total * 100) %>% select(word, JFK, Bush)
 colnames(percents) <- c("word", "JFK (%combined)", "Bush (%combined)") #name columns
+
 #View(percents)
 print(percents)
+```
+
+From this table, we can see the percentage of overall use each president used the word in his speech. For instance, the word "hope" was used in total 75 times, 50 times by Bush and 25 times by JFK. Therfore, Bush used the word two-thirds of the total times whereas JFK used the word one-third of the times. 
+
+```{r}
 # We should count differences in top 10 words
 top10jfk <- head(DATAJ, 10)[1] # top 10 words for jfk
 top10bus <- head(DATAB, 10)[1] # top 10 words for bush
@@ -91,46 +96,46 @@ print(insct$word)
 We now perform sentiment analysis on these words.
 
 ```{r}
-get_sentimentss <- function(df, sentiments, na.rm=T){
-  #given a list of sentiments, cross references words in the data frame with list, may remove NA rows
-  #NA rows are ones where the df contains a word which is not in the list of words/sentiments nrc
+get_sentimentss <- function(df, sentiments, na.rm=T) {
+  # given a list of sentiments, cross references words in the data frame with list, may remove NA rows
+  # NA rows are ones where the df contains a word which is not in the list of words/sentiments nrc
   nrc <- filter(nrc, sentiment %in% sentiments)
-  ds <- df %>% left_join(nrc, by="word")
-  if(na.rm){
+  ds <- df %>% left_join(nrc, by = "word")
+  if (na.rm) {
     ds <- ds[complete.cases(ds), ]
   }
   return(ds)
-} 
+}
 sentiments <- c("joy", "anger", "anticipation")
 top10bussent <- get_sentimentss(top10bus, sentiments)
 top10jfksent <- get_sentimentss(top10jfk, sentiments)
 View(top10jfksent)
 
-
-
 # Now let's calculate the percent occurence of each sentiment in top10 speech and overall.
-get_pct_occur <- function(df, sentiments){
-  #get df of pct occurence for each sentiment in a column dataframe
+get_pct_occur <- function(df, sentiments) {
+  # get df of pct occurence for each sentiment in a column dataframe
   occ <- as.data.frame(sentiments)
-  n = nrow(df)
+  n <- nrow(df)
   l <- length(sentiments)
-  occ$occurrences <- foreach(s= sentiments) %do% (nrow(df %>% select("sentiment") %>% filter(sentiment == s)) / n*100)
+  occ$occurrences <- foreach(s = sentiments) %do% (nrow(df %>% select("sentiment") %>% filter(sentiment == s)) / n * 100)
   return(occ)
 }
 
 pctocc_bush <- get_pct_occur(top10bussent, sentiments) # percent each sentiment occurs in top 10 most used words
-pctocc_jfk <- get_pct_occur(top10jfksent, sentiments) 
+pctocc_jfk <- get_pct_occur(top10jfksent, sentiments)
 
-#for overall let's get both the weighted overall sentiment, and the average for unique words
-bussent <- get_sentimentss(DATAB,sentiments)
+# for overall let's get both the weighted overall sentiment, and the average for unique words
+bussent <- get_sentimentss(DATAB, sentiments)
 jfksent <- get_sentimentss(DATAJ, sentiments)
-pct_overall_bush <- get_pct_occur(bussent,sentiments)
-pct_overall_jfk <- get_pct_occur(jfksent,sentiments)
+pct_overall_bush <- get_pct_occur(bussent, sentiments)
+pct_overall_jfk <- get_pct_occur(jfksent, sentiments)
 View(pct_overall_jfk)
 View(pct_overall_bush)
+```
 
+The tables beginning with pct_overall provide the information on what percentage of the speech was which sentiment. We can use this to determine whether a speech of mostly full of joy, anger, or anticipation.
 
-# Sentiment Analysis
+```{r}
 JFKSentiments <- JFK %>%
   unnest_tokens(word, text) %>%
   inner_join(get_sentiments("bing")) %>%
@@ -147,11 +152,10 @@ BUSSentiments <- BUS %>%
   mutate(sentiment = positive - negative)
 print(paste("Overall sentiment for BUS is ", sum(BUSSentiments$sentiment)))
 
-JFKSentimentsWeighted <- JFKSentiments %>% 
-  mutate(weighted = sentiment/sum(sentiment))
+JFKSentimentsWeighted <- JFKSentiments %>%
+  mutate(weighted = sentiment / sum(sentiment))
 
-BUSSentimentsWeighted <- BUSSentiments %>% 
-  mutate(weighted = sentiment/sum(sentiment))
-#test
+BUSSentimentsWeighted <- BUSSentiments %>%
+  mutate(weighted = sentiment / sum(sentiment))
 ```
 TODO Now let's analyze the difference between sentiment occurence in bush's and jfks speeches
