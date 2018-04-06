@@ -129,5 +129,28 @@ pct_overall_jfk <- get_pct_occur(jfksent,sentiments)
 View(pct_overall_jfk)
 View(pct_overall_bush)
 
+
+# Sentiment Analysis
+JFKSentiments <- JFK %>%
+  unnest_tokens(word, text) %>%
+  inner_join(get_sentiments("bing")) %>%
+  count(word, sentiment) %>%
+  spread(sentiment, n, fill = 0) %>%
+  mutate(sentiment = positive - negative)
+print(paste("Overall sentiment for JFK is ", sum(JFKSentiments$sentiment)))
+
+BUSSentiments <- BUS %>%
+  unnest_tokens(word, text) %>%
+  inner_join(get_sentiments("bing")) %>%
+  count(word, sentiment) %>%
+  spread(sentiment, n, fill = 0) %>%
+  mutate(sentiment = positive - negative)
+print(paste("Overall sentiment for BUS is ", sum(BUSSentiments$sentiment)))
+
+JFKSentimentsWeighted <- JFKSentiments %>% 
+  mutate(weighted = sentiment/sum(sentiment))
+
+BUSSentimentsWeighted <- BUSSentiments %>% 
+  mutate(weighted = sentiment/sum(sentiment))
 ```
 TODO Now let's analyze the difference between sentiment occurence in bush's and jfks speeches
