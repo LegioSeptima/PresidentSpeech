@@ -23,8 +23,7 @@ purl("bush41 first state of the union.txt", output = "Bush.R")
 purl("JFK first state of the union.txt", output = "JFK.R")
 #source("Bush.R")
 #source("JFK.R")
-nrc <- get_sentiments("nrc")
-View(nrc)
+
 JFK <- data.frame(readLines("JFK.R"))
 BUS <- data.frame(readLines("Bush.R"))
 
@@ -93,6 +92,7 @@ print(paste("The number of words that did not change in the top 10 is ", numsame
 print("The following words remained in the top 10 most-used for both speeches:") 
 print(insct$word)
 ```
+
 We now perform sentiment analysis on these words.
 
 ```{r}
