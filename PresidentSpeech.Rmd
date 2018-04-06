@@ -93,6 +93,7 @@ We now perform sentiment analysis on these words.
 ```{r}
 get_sentimentss <- function(df, sentiments, na.rm=T){
   #given a list of sentiments, cross references words in the data frame with list, may remove NA rows
+  #NA rows are ones where the df contains a word which is not in the list of words/sentiments nrc
   nrc <- filter(nrc, sentiment %in% sentiments)
   ds <- df %>% left_join(nrc, by="word")
   if(na.rm){
