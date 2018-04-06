@@ -152,5 +152,6 @@ JFKSentimentsWeighted <- JFKSentiments %>%
 
 BUSSentimentsWeighted <- BUSSentiments %>% 
   mutate(weighted = sentiment/sum(sentiment))
+#test
 ```
 TODO Now let's analyze the difference between sentiment occurence in bush's and jfks speeches
