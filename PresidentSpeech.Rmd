@@ -1,24 +1,27 @@
 ---
 title: "PresidentSpeech"
-author: "Steven Tran"
+author:
+- Steven Tran
+- Matthew Ciaramitaro
 date: "April 4, 2018"
-output: html_document
+output:
+  pdf_document: default
+  html_document: default
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-```
-
-```{r}
 library(knitr)
 library(tidytext)
 library(tidyverse)
 library(stringr)
-source(JFK.R)
-
+options(dplyr.print_max = 1e9)
+```
+```{r}
 purl("bush41 first state of the union.txt", output = "Bush.R")
 purl("JFK first state of the union.txt", output = "JFK.R")
-
+source("Bush.R")
+source("JFK.R")
 nrc <- get_sentiments("nrc")
 
 JFK <- data.frame(readLines("JFK.R"))
@@ -49,10 +52,27 @@ DATAB <- BUS %>% # BUSH COUNT
 # View(DATA)
 # View(DATAJ)
 # View(DATAB)
+
 # We should use these 3 tables to determine % share JFK and BUSH have of total
+joined <- DATA %>% full_join(DATAJ, by="word") %>% full_join(DATAB, by="word") 
+#puts words and counts for total, bush, and kennedy in seperate columns
+colnames(joined) <- c("word","Total", "JFK", "Bush") #name columns
+nums <- tail(colnames(joined), -1)
+joined <- mutate_at(joined, .vars=vars(nums), .funs=funs(replace(.,is.na(.), 0)) ) #replace na with 0
+print(joined)
+#View(joined)
 
-# TODO
+```
 
+TODO: DISCUSS RESULTS OF TABLE
+
+```{r}
+#now we must divide the JFK and BUS cols by the total row
+#percents <- joined %>% mutate_at(.vars=vars("JFK", "Bush"), . = . / Total)
+percents <- joined %>% mutate(JFK = JFK / Total * 100) %>% mutate(Bush = Bush / Total * 100) %>% select(word, JFK, Bush)
+colnames(percents) <- c("word", "JFK (%combined)", "Bush (%combined)") #name columns
+#View(percents)
+print(percents)
 # We should count differences in top 10 words
 top10jfk <- head(DATAJ, 10)[1] # top 10 words for jfk
 top10bus <- head(DATAB, 10)[1] # top 10 words for bush
@@ -60,9 +80,12 @@ compare <- top10jfk %>%
   mutate(inTop10Bus = word %in% top10bus[[1]])
 # View(top10jfk)
 top10merged <- top10jfk %>% rbind(top10bus) %>% distinct()
-# View(top10merged)
-tot <- nrow(top10merged)
-numsame <- 20 - tot
-print("The number of words that did not change in the top 10 is")
-print(numsame)
+insct <- top10jfk %>% intersect(top10bus)
+#View(insct)
+numsame <- nrow(insct)
+print(paste("The number of words that did not change in the top 10 is ", numsame))
+print("The following words remained in the top 10 most-used for both speeches:") 
+print(insct$word)
+
+
 ```
